@@ -1,0 +1,10 @@
+{
+  "name": "Skill Proof—HR Dashboard",
+  "short_name": "Skill Proof",
+  "description": "AI-powered hiring assessments",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": []
+}
