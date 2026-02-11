@@ -4,23 +4,29 @@ import { useRouter } from "next/navigation";
 import Card from "../../../../components/Card";
 import ProgressBar from "../../../../components/ProgressBar";
 import FormField from "../../../../components/FormField";
-import { uploadResume, submitManualInput } from "../../../../lib/api";
+import { submitManualInput } from "../../../../lib/api";
+import ResumeUpload from "@/components/ResumeUpload";
 
 export default function SkillsPage({ params }: { params: { link: string } }) {
   const router = useRouter();
   const [mode, setMode] = useState<"upload" | "manual">("upload");
-  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resumeAnalyzed, setResumeAnalyzed] = useState(false);
   const [manualData, setManualData] = useState({
     skills: "",
     experience: "",
     projects: "",
   });
 
+  const sessionId =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("candidate_session_id")
+      : null;
+
   async function next() {
-    if (mode === "upload" && !file) {
-      alert("Please upload a resume file");
+    if (mode === "upload" && !resumeAnalyzed) {
+      alert("Please upload and analyze your resume first");
       return;
     }
     if (mode === "manual" && !manualData.skills.trim()) {
@@ -28,7 +34,6 @@ export default function SkillsPage({ params }: { params: { link: string } }) {
       return;
     }
 
-    const sessionId = sessionStorage.getItem("candidate_session_id");
     if (!sessionId) {
       setError(
         "Session not found. Please go back and fill personal info first.",
@@ -40,13 +45,7 @@ export default function SkillsPage({ params }: { params: { link: string } }) {
     setError("");
 
     try {
-      if (mode === "upload" && file) {
-        const res = await uploadResume(params.link, file, sessionId);
-        sessionStorage.setItem(
-          "resume_analysis",
-          JSON.stringify(res.data.analysis),
-        );
-      } else {
+      if (mode === "manual") {
         const skills = manualData.skills
           .split(",")
           .map((s) => s.trim())
@@ -66,7 +65,7 @@ export default function SkillsPage({ params }: { params: { link: string } }) {
 
       sessionStorage.setItem(
         "candidate_skills",
-        JSON.stringify({ mode, file: file?.name, ...manualData }),
+        JSON.stringify({ mode, ...manualData }),
       );
       router.push(`/candidate/${params.link}/test`);
     } catch (err: any) {
@@ -76,6 +75,17 @@ export default function SkillsPage({ params }: { params: { link: string } }) {
       setLoading(false);
     }
   }
+
+  const handleResumeSuccess = (analysis: any) => {
+    setResumeAnalyzed(true);
+    sessionStorage.setItem("resume_analysis", JSON.stringify(analysis));
+    setError("");
+  };
+
+  const handleResumeError = (error: string) => {
+    setError(error);
+    setResumeAnalyzed(false);
+  };
 
   return (
     <div className="container">
@@ -122,17 +132,27 @@ export default function SkillsPage({ params }: { params: { link: string } }) {
 
           <div>
             {mode === "upload" ? (
-              <div className="p-4 border-2 border-dashed rounded text-center">
-                <input
-                  type="file"
-                  accept=".pdf,.docx,.doc"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="w-full"
-                />
-                {file && (
-                  <p className="mt-2 text-sm text-green-600">✓ {file.name}</p>
+              <>
+                {sessionId && (
+                  <ResumeUpload
+                    token={params.link}
+                    sessionId={sessionId}
+                    onSuccess={handleResumeSuccess}
+                    onError={handleResumeError}
+                    className="border rounded p-4"
+                  />
                 )}
-              </div>
+                {!sessionId && (
+                  <div className="p-4 bg-red-50 text-red-600 rounded text-sm">
+                    Session not found. Please go back to personal info.
+                  </div>
+                )}
+                {resumeAnalyzed && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                    ✓ Resume analyzed successfully!
+                  </div>
+                )}
+              </>
             ) : (
               <div className="space-y-4">
                 <FormField label="Key Skills">

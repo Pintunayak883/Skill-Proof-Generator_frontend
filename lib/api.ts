@@ -15,7 +15,7 @@ function getAuthToken() {
 }
 
 // Create axios instance with auth header
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_BASE,
 });
 
@@ -115,12 +115,16 @@ export async function uploadResume(
   file: File,
   sessionId: string,
 ) {
-  const formData = new FormData();
-  formData.append("resume", file);
-  formData.append("sessionId", sessionId);
-  return apiClient.post(`/api/candidate/${link}/resume`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  // Note: File upload should go through UploadThing
+  // This function is deprecated - use ResumeUpload component instead
+  console.warn(
+    "uploadResume is deprecated. Use ResumeUpload component or upload to UploadThing first",
+  );
+
+  // For now, throw an error to encourage using UploadThing
+  throw new Error(
+    "Resume uploads must use UploadThing. Please use the ResumeUpload component.",
+  );
 }
 
 export async function submitManualInput(
