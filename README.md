@@ -1,9 +1,11 @@
 # Skill Proof Generator - Frontend
 
 ## Overview
+
 Next.js 14 + React 18 frontend for the Skill Proof Generator platform. Features a complete candidate assessment flow with anti-cheating detection and secure test environment.
 
 ## Tech Stack
+
 - **Framework:** Next.js 14 (TypeScript)
 - **UI:** React 18 + Tailwind CSS
 - **HTTP Client:** Axios
@@ -12,6 +14,7 @@ Next.js 14 + React 18 frontend for the Skill Proof Generator platform. Features 
 - **Port:** 3000
 
 ## Project Structure
+
 ```
 app/
 ├── layout.tsx              # Root layout
@@ -57,19 +60,24 @@ public/
 ## Key Features
 
 ### 1. Candidate Registration Flow
+
 **Page: `/candidate/[link]/personal`**
+
 - Name, email, phone, location
 - Phone validation (international formats)
 - Session ID stored in sessionStorage
 
 **Page: `/candidate/[link]/skills`**
+
 - Resume upload via UploadThing
 - OR manual skill entry
 - Skill analysis with AI
 - Inferred skill level (Beginner/Intermediate/Experienced)
 
 ### 2. Dynamic Assessment Test
+
 **Page: `/candidate/[link]/test`**
+
 - One-question-at-a-time flow
 - Question display with:
   - Question type (Conceptual/Coding/Scenario)
@@ -80,30 +88,37 @@ public/
 - Escalating warning messages
 
 ### 3. Advanced Anti-Cheating Detection
+
 **Implemented in test/page.tsx:**
 
 **Tab Switching Detection**
+
 - `visibilitychange` event listener
 - Logs violation when user leaves tab
 
 **Copy/Paste Prevention**
+
 - Prevents keyboard shortcuts (Ctrl+C, Ctrl+V, Cmd+C, Cmd+V)
 - Blocks right-click context menu
 - Logs all copy/paste attempts
 
 **Keyboard Shortcut Detection**
+
 - Detects Alt+Tab
 - Detects Ctrl+Alt+Delete
 - Blocks suspicious key combinations
 
 **Violation Thresholds (4-Strike System)**
+
 - 1st violation: ⚠️ Warning (3 second display)
 - 2nd violation: ⚠️⚠️ Strong warning
 - 3rd violation: ⚠️⚠️⚠️ Final warning
 - 4th violation: 🚫 Auto-submit test, lock access
 
 ### 4. Test Results Page
+
 **Page: `/candidate/[link]/results`**
+
 - Overall score
 - Recommendation (Recommended/Consider/Not Recommended)
 - Summary assessment
@@ -111,7 +126,9 @@ public/
 - Answer-by-answer evaluation
 
 ### 5. HR Dashboard
+
 **Pages: `/hr/login`, `/hr/register`, `/hr/dashboard`**
+
 - Login/Register for HR users
 - View violation reports
 - Create job positions
@@ -123,6 +140,7 @@ public/
 All API calls use `apiClient` from `lib/api.ts`:
 
 ### Assessment Endpoints
+
 - `GET /assessment/{token}/question` - Fetch next question
 - `POST /assessment/{token}/submit-answer` - Submit answer
 - `POST /assessment/{token}/log-violation` - Log cheating violation
@@ -130,15 +148,18 @@ All API calls use `apiClient` from `lib/api.ts`:
 - `POST /assessment/{token}/submit-test` - Submit test
 
 ### Candidate Endpoints
+
 - `POST /candidate/{link}/resume` - Upload resume
 - `POST /candidate/{link}/skills` - Submit skills
 - `GET /candidate/{link}/resume` - Get resume analysis
 
 ### Auth Endpoints
+
 - `POST /auth/register` - Register candidate/HR
 - `POST /auth/login` - Login user
 
 ## Environment Variables
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 UPLOADTHING_APP_ID=your_app_id
@@ -147,6 +168,7 @@ UPLOADTHING_APP_ID=your_app_id
 ## State Management
 
 ### Test Page Component State
+
 ```typescript
 const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 const [answer, setAnswer] = useState("");
@@ -162,6 +184,7 @@ const [showWarning, setShowWarning] = useState(false);
 ```
 
 ### Session Storage
+
 - `candidate_session_id`: Unique session identifier
 - Persists across page refreshes
 - Required for assessment access
@@ -169,6 +192,7 @@ const [showWarning, setShowWarning] = useState(false);
 ## Component Examples
 
 ### ResumeUpload Component
+
 ```typescript
 - UploadThing integration
 - File type validation (PDF, DOCX, TXT)
@@ -177,6 +201,7 @@ const [showWarning, setShowWarning] = useState(false);
 ```
 
 ### Test Page Component
+
 ```typescript
 - Fetches questions dynamically
 - Handles answer submission
@@ -186,6 +211,7 @@ const [showWarning, setShowWarning] = useState(false);
 ```
 
 ### Modal Component
+
 ```typescript
 - Displays warnings and notifications
 - Dismissible with auto-close timer
@@ -193,6 +219,7 @@ const [showWarning, setShowWarning] = useState(false);
 ```
 
 ## Styling
+
 - **Framework:** Tailwind CSS
 - **Components:** Custom components with Tailwind classes
 - **Responsive:** Mobile-first design
@@ -219,23 +246,26 @@ npm start
 ## Key Functions
 
 ### Session Management
+
 ```typescript
 const sessionId = sessionStorage.getItem("candidate_session_id");
 sessionStorage.setItem("candidate_session_id", newSessionId);
 ```
 
 ### API Calls
+
 ```typescript
 const response = await apiClient.get(`/assessment/${token}/question`);
 const response = await apiClient.post(`/assessment/${token}/log-violation`, {
   sessionId,
   violationType,
   description,
-  metadata
+  metadata,
 });
 ```
 
 ### Anti-Cheating Event Listeners
+
 ```typescript
 document.addEventListener("visibilitychange", handleVisibilityChange);
 document.addEventListener("copy", handleCopy);
@@ -244,6 +274,7 @@ document.addEventListener("keydown", handleKeyDown);
 ```
 
 ## Security Features
+
 - Session validation on every request
 - Token-based test access
 - Copy/paste blocking in test
@@ -254,6 +285,7 @@ document.addEventListener("keydown", handleKeyDown);
 - CORS configuration on backend
 
 ## Testing Checklist
+
 - ✅ Resume upload with UploadThing
 - ✅ Personal info submission
 - ✅ Skills page with resume analysis
@@ -268,6 +300,7 @@ document.addEventListener("keydown", handleKeyDown);
 - ✅ Session persistence across refreshes
 
 ## Features Status
+
 - ✅ Candidate personal info form
 - ✅ Resume upload & analysis
 - ✅ Skills manual/auto input
@@ -287,30 +320,36 @@ document.addEventListener("keydown", handleKeyDown);
 ## Common Issues & Solutions
 
 **Session not found error:**
+
 - Ensure personal info page is completed first
 - Check sessionStorage in DevTools
 - Clear storage and restart if needed
 
 **Resume upload fails:**
+
 - Check UploadThing credentials in .env
 - Verify file type (PDF, DOCX, TXT)
 - Check browser console for error details
 
 **Questions not loading:**
+
 - Verify backend API is running on 5000
 - Check NEXT_PUBLIC_API_URL in .env
 - Verify test token is valid
 
 **Violations not logging:**
+
 - Check backend assessment routes are registered
 - Verify session validation middleware
 - Check MongoDB connection for violation logs
 
 ## Deployment
+
 - Deploy to Vercel with `npm run build`
 - Set environment variables in Vercel dashboard
 - Ensure backend API is accessible from frontend domain
 - Configure CORS on backend for frontend domain
 
 ## Support
+
 For issues, check browser console logs and network tab for API responses.

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api`;
 
 if (typeof window !== "undefined") {
   console.info("[api] baseURL:", API_BASE);
@@ -50,7 +50,7 @@ apiClient.interceptors.response.use(
 
 // Auth endpoints
 export async function loginHR(email: string, password: string) {
-  return apiClient.post("/api/auth/login", { email, password });
+  return apiClient.post("/auth/login", { email, password });
 }
 
 export async function registerHR(
@@ -59,7 +59,7 @@ export async function registerHR(
   password: string,
   company: string,
 ) {
-  return apiClient.post("/api/auth/register", {
+  return apiClient.post("/auth/register", {
     name,
     email,
     password,
@@ -69,37 +69,37 @@ export async function registerHR(
 
 // Job Position endpoints
 export async function createJobPosition(data: any) {
-  return apiClient.post(`/api/hr/positions`, data);
+  return apiClient.post(`/hr/positions`, data);
 }
 
 export async function getJobPositions() {
-  return apiClient.get(`/api/hr/positions`);
+  return apiClient.get(`/hr/positions`);
 }
 
 export async function getJobPositionById(id: string) {
-  return apiClient.get(`/api/hr/positions/${id}`);
+  return apiClient.get(`/hr/positions/${id}`);
 }
 
 export async function generateTestLink(
   jobPositionId: string,
   expiryDays?: number,
 ) {
-  return apiClient.post(`/api/hr/test-links`, {
+  return apiClient.post(`/hr/test-links`, {
     jobPositionId,
     expiryDays,
   });
 }
 
 export async function getTestLinks() {
-  return apiClient.get(`/api/hr/test-links`);
+  return apiClient.get(`/hr/test-links`);
 }
 
 export async function getReports() {
-  return apiClient.get(`/api/hr/dashboard/reports`);
+  return apiClient.get(`/hr/dashboard/reports`);
 }
 
 export async function getReportDetail(reportId: string) {
-  return apiClient.get(`/api/hr/dashboard/reports/${reportId}`);
+  return apiClient.get(`/hr/dashboard/reports/${reportId}`);
 }
 
 // Candidate endpoints
@@ -107,7 +107,7 @@ export async function submitPersonalInfo(
   link: string,
   data: { name: string; email: string; phone: string },
 ) {
-  return apiClient.post(`/api/candidate/${link}/personal-info`, data);
+  return apiClient.post(`/candidate/${link}/personal-info`, data);
 }
 
 export async function uploadResume(
@@ -136,11 +136,11 @@ export async function submitManualInput(
     projectsDescription: string;
   },
 ) {
-  return apiClient.post(`/api/candidate/${link}/manual-input`, data);
+  return apiClient.post(`/candidate/${link}/manual-input`, data);
 }
 
 export async function generateTask(link: string, sessionId: string) {
-  return apiClient.post(`/api/candidate/${link}/task`, { sessionId });
+  return apiClient.post(`/candidate/${link}/task`, { sessionId });
 }
 
 export async function submitAnswer(
@@ -153,7 +153,7 @@ export async function submitAnswer(
   },
 ) {
   return apiClient.post(
-    `/api/candidate/skill-session/${skillSessionId}/submit`,
+    `/candidate/skill-session/${skillSessionId}/submit`,
     data,
   );
 }
@@ -163,17 +163,17 @@ export async function sendCandidateEvent(
   eventType: string,
   payload: any = {},
 ) {
-  return apiClient.post(`/api/candidate/${link}/event`, {
+  return apiClient.post(`/candidate/${link}/event`, {
     type: eventType,
     payload,
   });
 }
 
 export async function submitCandidate(link: string, body: any) {
-  return apiClient.post(`/api/candidate/${link}/submit`, body);
+  return apiClient.post(`/candidate/${link}/submit`, body);
 }
 
 // Dashboard endpoints
 export async function getDashboardStats() {
-  return apiClient.get(`/api/hr/dashboard/stats`);
+  return apiClient.get(`/hr/dashboard/stats`);
 }

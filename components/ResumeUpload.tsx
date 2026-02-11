@@ -14,7 +14,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UploadButton } from "@/lib/uploadthing";
 import { apiClient } from "@/lib/api";
 import type { OurFileRouter } from "@/app/api/uploadthing/uploadRouter";
@@ -39,12 +39,26 @@ export default function ResumeUpload({
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [resolvedSessionId, setResolvedSessionId] = useState<string | null>(
+    sessionId || null,
+  );
+
+  // Ensure sessionId is available from sessionStorage if not passed as prop
+  useEffect(() => {
+    if (!resolvedSessionId && typeof window !== "undefined") {
+      const id = sessionStorage.getItem("candidate_session_id");
+      setResolvedSessionId(id);
+    }
+  }, [resolvedSessionId]);
 
   const handleUploadComplete = async (res: any[]) => {
+    console.log("[ResumeUpload] onClientUploadComplete called with:", res);
+
     if (!res || res.length === 0) {
-      const errorMsg = "No file uploaded";
+      const errorMsg = "No file uploaded to UploadThing";
       setError(errorMsg);
       onError?.(errorMsg);
+      console.error("❌ No file data received");
       return;
     }
 
@@ -54,24 +68,49 @@ export default function ResumeUpload({
       setUploadProgress(50);
 
       const file = res[0];
+      console.log("[ResumeUpload] Raw file object:", file);
+
+      // Normalize property names (UploadThing might use different naming)
+      const fileData = {
+        fileName: file.fileName || file.name,
+        fileUrl: file.fileUrl || file.url,
+        fileKey: file.fileKey || file.key,
+        fileMimeType: file.fileMimeType || file.type || "application/pdf",
+      };
+
+      console.log("📤 Normalized file data:", fileData);
+
+      // Verify sessionId is available
+      if (!resolvedSessionId) {
+        throw new Error(
+          "Session ID not found. Please go back and fill personal info first.",
+        );
+      }
 
       console.log("📤 File uploaded to UploadThing:", {
-        name: file.fileName,
-        url: file.fileUrl,
-        key: file.fileKey,
-        type: file.fileType,
-        size: file.fileSize,
+        name: fileData.fileName,
+        url: fileData.fileUrl,
+        key: fileData.fileKey,
+        type: fileData.fileMimeType,
       });
 
       setUploadProgress(70);
 
       // Send to backend with UploadThing data
+      console.log("[ResumeUpload] Sending POST request with body:", {
+        sessionId: resolvedSessionId,
+        resumeUrl: fileData.fileUrl,
+        fileKey: fileData.fileKey,
+        fileName: fileData.fileName,
+        fileMimeType: fileData.fileMimeType,
+      });
+
       const response = await apiClient.post(`/candidate/${token}/resume`, {
-        sessionId,
-        resumeUrl: file.fileUrl,
-        fileKey: file.fileKey,
-        fileName: file.fileName,
-        fileMimeType: file.fileType,
+        sessionId: resolvedSessionId,
+        resumeUrl: fileData.fileUrl,
+        fileKey: fileData.fileKey,
+        fileName: fileData.fileName,
+        fileMimeType: fileData.fileMimeType,
       });
 
       setUploadProgress(90);
@@ -91,9 +130,24 @@ export default function ResumeUpload({
       setTimeout(() => {
         setUploadProgress(0);
       }, 1000);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+    } catch (err: any) {
+      let errorMsg = "Unknown error";
+      let errorDetails = "";
+
+      if (err?.response?.data?.error) {
+        errorMsg = err.response.data.error;
+        errorDetails = JSON.stringify(err.response.data, null, 2);
+      } else if (err?.response?.data) {
+        errorMsg = "Backend error";
+        errorDetails = JSON.stringify(err.response.data, null, 2);
+      } else if (err instanceof Error) {
+        errorMsg = err.message;
+      }
+
       console.error("❌ Resume upload error:", errorMsg);
+      console.error("📋 Error details:", errorDetails);
+      console.error("🔧 Full error:", err);
+
       setError(errorMsg);
       onError?.(errorMsg);
       setUploadProgress(0);
@@ -185,17 +239,28 @@ export default function ResumeUpload({
             <div>
               <p className="text-sm text-gray-600">Confidence Score</p>
               <div className="flex items-center gap-2">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-600 h-2 rounded-full"
-                    style={{
-                      width: `${(analysis.confidence || 0) * 100}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-sm font-semibold whitespace-nowrap">
-                  {Math.round((analysis.confidence || 0) * 100)}%
-                </span>
+                {/* Convert confidence string to percentage */}
+                {(() => {
+                  const confidenceMap = { High: 0.9, Medium: 0.6, Low: 0.3 };
+                  const confValue =
+                    confidenceMap[
+                      analysis.confidence as keyof typeof confidenceMap
+                    ] || 0;
+                  const percentage = Math.round(confValue * 100);
+                  return (
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold whitespace-nowrap">
+                        {analysis.confidence || "N/A"} ({percentage}%)
+                      </span>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Card from "../../../../components/Card";
 import ProgressBar from "../../../../components/ProgressBar";
@@ -13,16 +13,18 @@ export default function SkillsPage({ params }: { params: { link: string } }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resumeAnalyzed, setResumeAnalyzed] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [manualData, setManualData] = useState({
     skills: "",
     experience: "",
     projects: "",
   });
 
-  const sessionId =
-    typeof window !== "undefined"
-      ? sessionStorage.getItem("candidate_session_id")
-      : null;
+  // Load sessionId after hydration
+  useEffect(() => {
+    const id = sessionStorage.getItem("candidate_session_id");
+    setSessionId(id);
+  }, []);
 
   async function next() {
     if (mode === "upload" && !resumeAnalyzed) {

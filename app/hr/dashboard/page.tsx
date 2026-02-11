@@ -78,12 +78,18 @@ export default function DashboardPage() {
         setLinks(linksRes.data.testLinks || []);
         setReports(reportsRes.data.reports || []);
       } catch (err: any) {
-        const message =
-          err.response?.data?.error ||
-          err.message ||
-          "Failed to load dashboard data.";
-        setError(message);
         console.error("Dashboard fetch error:", err);
+        let message = "Failed to load dashboard data.";
+        
+        if (err?.response?.data?.error) {
+          message = err.response.data.error;
+        } else if (err?.message) {
+          message = err.message;
+        } else if (typeof err === "string") {
+          message = err;
+        }
+        
+        setError(message);
       } finally {
         setIsLoading(false);
       }
